@@ -1,4 +1,3 @@
 # msgpack-benchmark #
 
-Benchmarks of `MsgPack` libraries in various languages.
-
+Benchmark of `MsgPack` vs `JSON` vs `XML` in various languages and libraries.
