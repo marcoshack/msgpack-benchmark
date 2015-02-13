@@ -50,8 +50,8 @@ number_data = [
 data    = { "number" => number_data, "string" => string_data }
 parsers = {
   "json"    => Proc.new { |data| Oj.load(Oj.dump(data)) },
-  "msgpack" => Proc.new { MessagePack.unpack(data.to_msgpack) },
-  "xml"     => Proc.new { Ox.load(Ox.dump(data)) },
+  "msgpack" => Proc.new { |data| MessagePack.unpack(data.to_msgpack) },
+  "xml"     => Proc.new { |data| Ox.load(Ox.dump(data)) },
 }
 
 n = ARGV[0].nil? || ARGV[0] == "" ? 10000 : ARGV[0].to_i
