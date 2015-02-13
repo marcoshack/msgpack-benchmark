@@ -47,19 +47,21 @@ number_data = [
   ]
 ]
 
+data    = { "number" => number_data, "string" => string_data }
+parsers = {
+  "json"    => Proc.new { |data| Oj.load(Oj.dump(data)) },
+  "msgpack" => Proc.new { MessagePack.unpack(data.to_msgpack) },
+  "xml"     => Proc.new { Ox.load(Ox.dump(data)) },
+}
+
 n = ARGV[0].nil? || ARGV[0] == "" ? 10000 : ARGV[0].to_i
 puts "Running benchmark with n = #{n}"
 
-executions = {
-  "json number"    => Proc.new { Oj.load(Oj.dump(number_data)) },
-  "msgpack number" => Proc.new { MessagePack.unpack(number_data.to_msgpack) },
-  "xml number"     => Proc.new { Ox.load(Ox.dump(number_data)) },
-  "json string"    => Proc.new { Oj.load(Oj.dump(string_data)) },
-  "msgpack string" => Proc.new { MessagePack.unpack(string_data.to_msgpack) },
-  "xml string"    => Proc.new { Ox.load(Ox.dump(string_data)) },
-}
-width = executions.keys.collect { |name| name.size }.max + 2
-executions.each do |name, proc|
-  bm = Benchmark.measure("name") { n.times { proc.call }}
-  printf "%-#{width}s: %.5f (%d ops/sec)\n", name, bm.utime, n / bm.utime
+width = parsers.keys.collect { |p| data.keys.collect { |d| "#{p}:#{d}" }}.flatten.collect { |s| s.size }.max + 2
+
+parsers.each do |parser_name, p|
+  data.each do |data_type, d|
+    bm = Benchmark.measure("name") { n.times { p.call(d) }}
+    printf "%-#{width}s: %.5f (%d ops/sec)\n", "#{parser_name}:#{data_type}", bm.utime, n / bm.utime
+  end
 end
