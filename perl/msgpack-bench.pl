@@ -4,10 +4,14 @@ use strict;
 use warnings;
 use Data::MessagePack;
 use JSON::XS;
+use XML::Simple;
 use Benchmark qw/ :hireswallclock cmpthese /;
 
-my $json     = JSON::XS->new;
-my $msgpack  = Data::MessagePack->new;
+$XML::Simple::PREFERRED_PARSER = 'XML::Parser';
+
+my $json    = JSON::XS->new;
+my $msgpack = Data::MessagePack->new;
+my $xml     = XML::Simple->new;
 
 my $stringData = {
     "glossary" => {
@@ -57,7 +61,7 @@ my $alphaNumber = {
 
 my $big = {};
 
-for(0..1000) {
+for ( 0 .. 1000 ) {
     $big->{ 'data_' . $_ } = $alphaNumber;
 }
 
@@ -71,6 +75,9 @@ cmpthese(
         },
         'msgpack_string' => sub {
             my $result = $msgpack->decode( $msgpack->encode($stringData) );
+        },
+        'xml_string' => sub {
+            my $result = $xml->XMLin( $xml->XMLout($stringData) );
         }
     }
 );
@@ -85,6 +92,9 @@ cmpthese(
         },
         'msgpack_number' => sub {
             my $result = $msgpack->decode( $msgpack->encode($numberData) );
+        },
+        'xml_number' => sub {
+            my $result = $xml->XMLin( $xml->XMLout($numberData) );
         }
     }
 );
@@ -97,8 +107,11 @@ cmpthese(
     {   'json_alphaNumber' => sub {
             my $result = $json->decode( $json->encode($alphaNumber) );
         },
-        'msgpack_aplhaNumber' => sub {
+        'msgpack_alphaNumber' => sub {
             my $result = $msgpack->decode( $msgpack->encode($alphaNumber) );
+        },
+        'xml_alphaNumber' => sub {
+            my $result = $xml->XMLin( $xml->XMLout($alphaNumber) );
         }
     }
 );
@@ -113,6 +126,9 @@ cmpthese(
         },
         'msgpack_big' => sub {
             my $result = $msgpack->decode( $msgpack->encode($big) );
+        },
+        'xml_big' => sub {
+            my $result = $xml->XMLin( $xml->XMLout($big) );
         }
     }
 );
